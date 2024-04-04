@@ -7,6 +7,9 @@ from keras.models import Sequential
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+from keras.utils.vis_utils import plot_model
+
+
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 if len(physical_devices) > 0:
@@ -14,7 +17,7 @@ if len(physical_devices) > 0:
 
 classes = ['boxing', 'handclapping', 'handwaving', 'jogging', 'running', 'walking']
 
-num_of_timesteps = 5
+num_of_timesteps = 7
 num_classes = len(classes)
 
 X, y = [], []
@@ -57,8 +60,10 @@ model.add(Dense(units = num_classes, activation="softmax"))
 model.compile(optimizer="adam", metrics = ['accuracy'], loss = "categorical_crossentropy")
 model.summary()
 
-history = model.fit(X_train, y_train, epochs=8, batch_size=32,validation_data=(X_test, y_test))
-model.save("model/model.h5")
+plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True, show_layer_activations = True)
+
+history = model.fit(X_train, y_train, epochs=10, batch_size=32,validation_data=(X_test, y_test))
+model.save(f"model/model_{num_of_timesteps}.h5")
 
 def visualize_loss(history, title):
     loss = history.history["loss"]
@@ -72,4 +77,19 @@ def visualize_loss(history, title):
     plt.ylabel("Loss")
     plt.legend()
     plt.show()
+
+def visualize_accuracy(history, title):
+    accuracy = history.history["accuracy"]
+    val_accuracy = history.history["val_accuracy"]
+    epochs = range(len(accuracy))
+    plt.figure()
+    plt.plot(epochs, accuracy, "b", label="Training accuracy")
+    plt.plot(epochs, val_accuracy, "r", label="Validation accuracy")
+    plt.title(title)
+    plt.xlabel("Epochs")
+    plt.ylabel("accuracy")
+    plt.legend()
+    plt.show()
+
 visualize_loss(history, "Training and Validation Loss")
+visualize_accuracy(history, "Training and Validation Accuracy")

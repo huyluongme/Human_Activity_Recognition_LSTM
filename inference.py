@@ -11,13 +11,13 @@ physical_devices = tf.config.experimental.list_physical_devices('GPU')
 if len(physical_devices) > 0:
     tf.config.experimental.set_visible_devices(physical_devices[0], 'GPU')
 
-model = load_model('model/model.h5')
+num_of_timesteps = 7
+model = load_model(f'model/model_{num_of_timesteps}.h5')
 
 mpPose = mp.solutions.pose
 pose = mpPose.Pose()
 mpDraw = mp.solutions.drawing_utils
 
-num_of_timesteps = 5
 
 def make_landmark_timestep(results):
     lm_list = []
@@ -86,7 +86,7 @@ def detect(model, lm_list):
     predicted_label_index = np.argmax(results, axis=1)[0]
     classes = ['boxing', 'handclapping', 'handwaving', 'jogging', 'running', 'walking']
     confidence = np.max(results, axis=1)[0]
-    if confidence > 0.9:
+    if confidence > 0.95:
         label = classes[predicted_label_index]
     else:
         label = "neutral"
@@ -112,6 +112,7 @@ while True:
             detect_thread.start()
             lm_list = []
         frame = draw_landmark_on_image(results, frame)
+    # frame = cv2.flip(frame, 1)
     frame = draw_class_on_image(label, frame)
     cv2.imshow("image", frame)
     if cv2.waitKey(1) == ord('q'):
